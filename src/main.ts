@@ -72,7 +72,9 @@ if (!app.requestSingleInstanceLock()) {
       console.log(`[desktop] FreeLLMAPI running on http://127.0.0.1:${port}`);
 
       // Dev-only UI verification: FREEAPI_SHOT=1 opens the popover and the
-      // dashboard, captures both to /tmp, and quits. Never set when packaged.
+      // dashboard, captures both to /tmp, and quits. FREEAPI_SHOT=hold opens
+      // the popover and keeps it pinned (blur ignored) so a real screen
+      // capture can include the compositor's vibrancy. Never set when packaged.
       if (process.env.FREEAPI_SHOT && !app.isPackaged) {
         const fs = await import('node:fs');
         const { togglePopover, getPopoverWindow } = await import('./popover.js');
@@ -80,6 +82,12 @@ if (!app.requestSingleInstanceLock()) {
         const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
         await sleep(800);
         togglePopover(tray);
+        if (process.env.FREEAPI_SHOT === 'hold') {
+          const pop = getPopoverWindow();
+          pop?.removeAllListeners('blur'); // stay open unfocused
+          if (pop) fs.writeFileSync('/tmp/freeapi-popover-bounds.json', JSON.stringify(pop.getBounds()));
+          return;
+        }
         await sleep(1500);
         const pop = await getPopoverWindow()?.webContents.capturePage();
         if (pop) fs.writeFileSync('/tmp/freeapi-popover.png', pop.toPNG());

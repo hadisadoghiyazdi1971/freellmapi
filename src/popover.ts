@@ -4,21 +4,24 @@ import { BrowserWindow, type Tray } from 'electron';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const WIDTH = 332;
-const HEIGHT = 356;
+const WIDTH = 316;
+const HEIGHT = 348;
 
 let popover: BrowserWindow | null = null;
 
-// A Control-Center-style glass panel anchored under the tray icon. Created
-// once, then shown/hidden — cheap to keep around (one small renderer) and
-// instant to open. Hides on blur like a real menu.
+// A Control-Center-style glass panel anchored under the tray icon.
+// Real macOS material: frameless window with SYSTEM rounded corners +
+// NSVisualEffectView vibrancy + native shadow. No `transparent: true` —
+// that path composites the window itself and defeats the vibrancy blur;
+// instead the page background stays transparent and the material shows
+// through. Created once, then shown/hidden; hides on blur like a menu.
 function createPopover(): BrowserWindow {
   const win = new BrowserWindow({
     width: WIDTH,
     height: HEIGHT,
     show: false,
     frame: false,
-    transparent: true,
+    roundedCorners: true, // native macOS corner mask + matching shadow
     resizable: false,
     movable: false,
     minimizable: false,
@@ -26,10 +29,16 @@ function createPopover(): BrowserWindow {
     fullscreenable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    hasShadow: false, // the panel draws its own soft shadow (transparent margins)
     ...(process.platform === 'darwin'
-      ? { vibrancy: 'popover' as const, visualEffectState: 'active' as const }
-      : {}),
+      ? {
+          vibrancy: 'popover' as const,
+          visualEffectState: 'active' as const,
+          backgroundColor: '#00000000',
+        }
+      : {
+          // Windows 11 acrylic; older Windows falls back to the solid CSS bg.
+          backgroundMaterial: 'acrylic' as const,
+        }),
     webPreferences: {
       preload: path.join(__dirname, 'preload-popover.cjs'),
       contextIsolation: true,
@@ -70,8 +79,8 @@ export function togglePopover(tray: Tray): void {
   // Centered under the icon; tray bounds are in screen coordinates.
   const x = Math.round(b.x + b.width / 2 - WIDTH / 2);
   const y = process.platform === 'darwin'
-    ? Math.round(b.y + b.height + 4)
-    : Math.round(b.y - HEIGHT - 4); // Windows tray sits at the bottom
+    ? Math.round(b.y + b.height + 6)
+    : Math.round(b.y - HEIGHT - 6); // Windows tray sits at the bottom
   popover.setPosition(x, y, false);
   popover.webContents.send('freeapi:refresh');
   popover.show();

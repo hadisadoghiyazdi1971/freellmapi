@@ -13,21 +13,20 @@
     --ok: #34c759;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-  html, body { background: transparent; }
+  /* The window itself is the panel: native rounded corners + vibrancy show
+     through everywhere the page stays (near-)transparent. CSS adds only a
+     whisper of tint and the gloss sheen. */
+  html, body { background: transparent; height: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
     color: var(--fg);
-    padding: 8px;
   }
   .panel {
     position: relative;
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(46,46,52,0.62), rgba(28,28,32,0.66));
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.14),
-      inset 0 0 0 0.5px rgba(255,255,255,0.08),
-      0 18px 48px rgba(0,0,0,0.42);
+    height: 100%;
+    background: linear-gradient(180deg, rgba(40,40,46,0.18), rgba(20,20,24,0.22));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
     overflow: hidden;
     padding: 14px 14px 12px;
   }
@@ -36,7 +35,7 @@
   .panel::before {
     content: "";
     position: absolute; inset: 0 0 auto 0; height: 110px;
-    background: radial-gradient(120% 100% at 50% -20%, rgba(255,255,255,0.16), rgba(255,255,255,0) 70%);
+    background: radial-gradient(120% 100% at 50% -20%, rgba(255,255,255,0.12), rgba(255,255,255,0) 70%);
     pointer-events: none;
   }
 
